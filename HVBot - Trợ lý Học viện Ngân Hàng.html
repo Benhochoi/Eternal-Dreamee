@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<!-- saved from url=(0046)https://phuongle2701.w3spaces.com/chatbox.html -->
+<html lang="vi"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HVBot - Trợ lý Học viện Ngân Hàng</title>
+    <style>
+        /* Reset và Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #fef3c7 50%, #fce7f3 100%);
+            overflow: hidden;
+        }
+
+        .chatbot-container {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        .chatbot-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 2rem;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .header-info h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-info p {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .btn-new-chat {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-new-chat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(139, 92, 246, 0.4);
+        }
+
+        /* Main Content Area */
+        .chatbot-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Chat Area Styles */
+        .chatbot-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .chat-messages-inner {
+            max-width: 56rem;
+            margin: 0 auto;
+        }
+
+        /* Message Styles */
+        .message {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 20px;
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+            color: #374151;
+        }
+
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 70%;
+        }
+
+        .message.user .message-content {
+            align-items: flex-end;
+        }
+
+        .message-bubble {
+            padding: 1rem 1.25rem;
+            border-radius: 1.25rem;
+            line-height: 1.6;
+            font-size: 0.9375rem;
+        }
+
+        .message.bot .message-bubble h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin: 0.85rem 0 0.3rem;
+            color: #1e40af;
+            border-left: 3px solid #a78bfa;
+            padding-left: 0.5rem;
+        }
+        .message.bot .message-bubble h3:first-child { margin-top: 0; }
+        .message.bot .message-bubble strong { font-weight: 700; color: #111827; }
+        .message.bot .message-bubble em { font-style: italic; }
+        .message.bot .message-bubble ul {
+            margin: 0.3rem 0 0.3rem 1.2rem;
+            padding: 0;
+            list-style: disc;
+        }
+        .message.bot .message-bubble li { margin: 0.15rem 0; }
+        .message.bot .message-bubble p { margin: 0.4rem 0; }
+        .message.bot .message-bubble p:first-child { margin-top: 0; }
+        .message.bot .message-bubble p:last-child  { margin-bottom: 0; }
+        .message.bot .message-bubble .cite {
+            font-weight: 700;
+            color: #7c3aed;
+        }
+
+        .message.bot .message-bubble {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            color: #111827;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-top-left-radius: 0.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            color: #ffffff;
+            border-top-right-radius: 0.25rem;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            padding: 0 0.5rem;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.375rem;
+            padding: 1rem 1.25rem;
+            background-color: #ffffff;
+            border-radius: 1.25rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #2563eb;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Quick Suggestions */
+        .quick-suggestions {
+            margin-top: 2rem;
+        }
+
+        .suggestions-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            color: #6b7280;
+            font-size: 0.9375rem;
+            font-weight: 500;
+        }
+
+        .suggestions-icon {
+            font-size: 20px;
+            color: #fbbf24;
+        }
+
+        .suggestions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .suggestion-card {
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            font-size: 0.875rem;
+            color: #374151;
+            line-height: 1.5;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .suggestion-card:hover {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(167, 139, 250, 0.5);
+            color: #6d28d9;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Chat Input Area */
+        .chat-input-area {
+            padding: 1.5rem 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .chat-input-container {
+            max-width: 56rem;
+            margin: 0 auto;
+        }
+
+        .chat-input-form {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 1rem 3.5rem 1rem 1.25rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 50px;
+            font-size: 0.9375rem;
+            outline: none;
+            transition: all 0.2s;
+            background-color: #ffffff;
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background-color: transparent;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .btn-icon:hover {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-icon.right {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .btn-send {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.25);
+            font-size: 20px;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .chat-disclaimer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.75rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Scrollbar Styles */
+        .chat-messages::-webkit-scrollbar,
+        .sidebar-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track,
+        .sidebar-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb,
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover,
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .chatbot-sidebar {
+                position: fixed;
+                left: -320px;
+                top: 0;
+                bottom: 0;
+                z-index: 100;
+                transition: left 0.3s;
+            }
+
+            .chatbot-sidebar.open {
+                left: 0;
+            }
+
+            .suggestions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .chat-input-area {
+                padding: 1rem;
+            }
+
+            .chatbot-header {
+                padding: 1rem;
+            }
+        }
+    </style>
+<style>.--savior-overlay-transform-reset {
+  transform: none !important;
+}
+.--savior-overlay-z-index-top {
+  z-index: 2147483643 !important;
+}
+.--savior-overlay-position-relative {
+  position: relative;
+}
+.--savior-overlay-position-static {
+  position: static !important;
+}
+.--savior-overlay-overflow-hidden {
+  overflow: hidden !important;
+}
+.--savior-overlay-overflow-x-visible {
+  overflow-x: visible !important;
+}
+.--savior-overlay-overflow-y-visible {
+  overflow-y: visible !important;
+}
+.--savior-overlay-z-index-reset {
+  z-index: auto !important;
+}
+.--savior-overlay-display-none {
+  display: none !important;
+}
+.--savior-overlay-clearfix {
+  clear: both;
+}
+.--savior-overlay-reset-filter {
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+.--savior-tooltip-host {
+  z-index: 9999;
+  position: absolute;
+  top: 0;
+}
+/*Override css styles for Twitch.tv*/
+main.--savior-overlay-z-index-reset {
+  z-index: auto !important;
+}
+.modal__backdrop.--savior-overlay-z-index-reset {
+  position: static !important;
+}
+main.--savior-overlay-z-index-top {
+  z-index: auto !important;
+}
+main.--savior-overlay-z-index-top .channel-root__player-container + div,
+main.--savior-overlay-z-index-top .video-player-hosting-ui__container + div {
+  opacity: 0.1;
+}
+/*Dirty hack for facebook big video page e.g: https://www.facebook.com/abc/videos/...*/
+.--savior-backdrop {
+  position: fixed !important;
+  z-index: 2147483642 !important;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw !important;
+  background-color: rgba(0,0,0,0.9);
+}
+.--savior-overlay-twitter-video-player {
+  position: fixed;
+  width: 80%;
+  height: 80%;
+  top: 10%;
+  left: 10%;
+}
+.--savior-overlay-z-index-reset [class*="DivSideNavContainer"],
+.--savior-overlay-z-index-reset [class*="DivHeaderContainer"],
+.--savior-overlay-z-index-reset [class*="DivBottomContainer"],
+.--savior-overlay-z-index-reset [class*="DivCategoryListWrapper"],
+.--savior-overlay-z-index-reset [data-testid="sidebarColumn"],
+.--savior-overlay-z-index-reset header[role="banner"],
+.--savior-overlay-z-index-reset [data-testid="cellInnerDiv"]:not(.--savior-overlay-z-index-reset),
+.--savior-overlay-z-index-reset [aria-label="Home timeline"]>div:first-child,
+.--savior-overlay-z-index-reset [aria-label="Home timeline"]>div:nth-child(3) {
+  z-index: -1 !important;
+}
+.--savior-overlay-z-index-reset [data-testid="cellInnerDiv"] .--savior-backdrop+div {
+  z-index: 2147483643 !important;
+}
+.--savior-overlay-z-index-reset [data-testid="primaryColumn"]>[aria-label="Home timeline"] {
+  z-index: 0 !important;
+}
+.--savior-overlay-z-index-reset#mtLayer,
+.--savior-overlay-z-index-reset.media-layer {
+  z-index: 3000 !important;
+}
+.--savior-overlay-position-relative [class*="SecBar_secBar_"],
+.--savior-overlay-position-relative .woo-box-flex [class*="Frame_top_"] {
+  z-index: 0 !important;
+}
+.--savior-overlay-position-relative .vue-recycle-scroller__item-view:not(.--savior-overlay-z-index-reset),
+.--savior-overlay-position-relative .woo-panel-main[class*="BackTop_main_"],
+.--savior-overlay-position-relative [class*="Main_side_"] {
+  z-index: -1 !important;
+}
+/* Fix conflict css with zingmp3 */
+.zm-video-modal.--savior-overlay-z-index-reset {
+  position: absolute;
+}
+/* Dirty hack for xvideos99 */
+#page #main.--savior-overlay-z-index-reset {
+  z-index: auto !important;
+}
+/* Overlay for ok.ru */
+#vp_w.--savior-overlay-z-index-reset.media-layer.media-layer__video {
+  overflow-y: hidden;
+  z-index: 2147483643 !important;
+}
+/* Fix missing controller for tv.naver.com */
+.--savior-overlay-z-index-top.rmc_controller,
+.--savior-overlay-z-index-top.rmc_setting_intro,
+.--savior-overlay-z-index-top.rmc_highlight,
+.--savior-overlay-z-index-top.rmc_control_settings {
+  z-index: 2147483644 !important;
+}
+/* Dirty hack for douyi.com */
+.swiper-wrapper.--savior-overlay-z-index-reset .swiper-slide:not(.swiper-slide-active),
+.swiper-wrapper.--savior-overlay-transform-reset .swiper-slide:not(.swiper-slide-active) {
+  display: none;
+}
+.videoWrap + div > div {
+  pointer-events: unset;
+}
+/* Dirty hack for fpt.ai */
+.mfp-wrap.--savior-overlay-z-index-top {
+  position: relative;
+}
+.mfp-wrap.--savior-overlay-z-index-top .mfp-close {
+  display: none;
+}
+.mfp-wrap.--savior-overlay-z-index-top .mfp-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+section.--savior-overlay-z-index-reset>main[role="main"].--savior-overlay-z-index-reset + nav {
+  z-index: -1 !important;
+}
+section.--savior-overlay-z-index-reset>main[role="main"].--savior-overlay-z-index-reset section.--savior-overlay-z-index-reset div.--savior-overlay-z-index-reset ~ div {
+  position: relative;
+}
+.watching-movie #video-player.--savior-overlay-z-index-top {
+  z-index: 2147483644 !important;
+}
+div[class^="tiktok"].--savior-overlay-z-index-reset {
+  z-index: 2147483644 !important;
+}
+.--savior-lightoff-fix section:not(:has([class*="--savior-overlay-"])),
+.--savior-lightoff-fix section.section_video ~ section {
+  z-index: -1;
+  position: relative;
+}
+.--savior-lightoff-fix header,
+.--savior-lightoff-fix footer,
+.--savior-lightoff-fix .top-header,
+.--savior-lightoff-fix .swiper-container,
+.--savior-lightoff-fix #to_top,
+.--savior-lightoff-fix #button-adblock {
+  z-index: -1 !important;
+}
+@-moz-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@-o-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+</style></head>
+<body>
+    <div class="chatbot-container">
+        <!-- Header -->
+        <header class="chatbot-header">
+            <div class="header-brand">
+                <div class="header-logo">🤖</div>
+                <div class="header-info">
+                    <h1>HVBot - Trợ lý Học viện Ngân Hàng</h1>
+                    <p>Tư vấn và hỗ trợ sinh viên 24/7</p>
+                </div>
+            </div>
+            <button class="btn-new-chat" onclick="init()">Cuộc trò chuyện mới</button>
+        </header>
+
+        <!-- Main Content -->
+        <div class="chatbot-main">
+            <!-- Chat Area -->
+            <main class="chatbot-chat">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="chat-messages-inner" id="messagesContainer">
+                <div class="message bot">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div class="message-bubble">Xin chào! Tôi là HVBot, trợ lý ảo của Học viện Ngân Hàng. Tôi có thể giúp bạn giải đáp các thắc mắc về:
+
+• Chương trình đào tạo và khung chương trình
+• Thủ tục hành chính
+• Học vụ và đăng ký học phần
+• Học phí và học bổng
+• Các thông tin khác về học viện
+
+Bạn cần hỗ trợ về vấn đề gì?</div>
+                        <span class="message-time">08:37</span>
+                    </div>
+                </div>
+            
+                    <div class="quick-suggestions">
+                        <div class="suggestions-header">
+                            <span class="suggestions-icon">💡</span>
+                            <span>Câu hỏi gợi ý</span>
+                        </div>
+                        <div class="suggestions-grid">
+                            
+                                <button class="suggestion-card" onclick="handleSendMessage(&#39; Cách quy đổi điểm ILETS cho hệ thường&#39;)">
+                                    Cách quy đổi điểm ILETS cho hệ thường
+                                </button>
+                            
+                                <button class="suggestion-card" onclick="handleSendMessage(&#39;Thủ tục đăng ký học phần học kỳ 2&#39;)">
+                                    Thủ tục đăng ký học phần học kỳ 2
+                                </button>
+                            
+                                <button class="suggestion-card" onclick="handleSendMessage(&#39;Tiến độ đào tạo ngành Công nghệ thông tin của Học viện Ngân Hàng&#39;)">
+                                    Tiến độ đào tạo ngành Công nghệ thông tin của Học viện Ngân Hàng
+                                </button>
+                            
+                                <button class="suggestion-card" onclick="handleSendMessage(&#39;Điều kiện xét học bổng khuyến khích học tập&#39;)">
+                                    Điều kiện xét học bổng khuyến khích học tập
+                                </button>
+                            
+                                <button class="suggestion-card" onclick="handleSendMessage(&#39;Các chứng chỉ có thể quy đổi điểm cho môn học&#39;)">
+                                    Các chứng chỉ có thể quy đổi điểm cho môn học
+                                </button>
+                            
+                                <button class="suggestion-card" onclick="handleSendMessage(&#39;Chương trình đào tạo ngành Tài chính Ngân hàng&#39;)">
+                                    Chương trình đào tạo ngành Tài chính Ngân hàng
+                                </button>
+                            
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="chat-input-area">
+                    <div class="chat-input-container">
+                        <form class="chat-input-form" id="chatForm">
+                            <div class="input-wrapper">
+                                <input type="text" class="chat-input" placeholder="Nhập câu hỏi của bạn..." id="chatInput">
+                            </div>
+                            <button type="submit" class="btn-send" id="sendBtn">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+                                </svg>
+                            </button>
+                        </form>
+                        <p class="chat-disclaimer">
+                            HVBot có thể mắc lỗi. Hãy kiểm tra thông tin quan trọng.
+                        </p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Data
+        const suggestions = [
+            "Cách quy đổi điểm ILETS cho hệ thường",
+            "Thủ tục đăng ký học phần học kỳ 2",
+            "Tiến độ đào tạo ngành Công nghệ thông tin của Học viện Ngân Hàng",
+            "Điều kiện xét học bổng khuyến khích học tập",
+            "Các chứng chỉ có thể quy đổi điểm cho môn học",
+            "Chương trình đào tạo ngành Tài chính Ngân hàng",
+        ];
+
+        // State
+        let messages = [];
+
+        // Initialize
+        function init() {
+            addInitialMessage();
+        }
+
+        function addInitialMessage() {
+            messages = [{
+                id: Date.now().toString(),
+                text: "Xin chào! Tôi là HVBot, trợ lý ảo của Học viện Ngân Hàng. Tôi có thể giúp bạn giải đáp các thắc mắc về:\n\n• Chương trình đào tạo và khung chương trình\n• Thủ tục hành chính\n• Học vụ và đăng ký học phần\n• Học phí và học bổng\n• Các thông tin khác về học viện\n\nBạn cần hỗ trợ về vấn đề gì?",
+                isBot: true,
+                timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+            }];
+            renderMessages();
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('messagesContainer');
+            const showSuggestions = messages.length === 1 && messages[0].isBot;
+            
+            container.innerHTML = messages.map(msg => `
+                <div class="message ${msg.isBot ? 'bot' : 'user'}">
+                    <div class="message-avatar">${msg.isBot ? '🤖' : '👤'}</div>
+                    <div class="message-content">
+                        <div class="message-bubble">${msg.isBot ? markdownToHtml(msg.text) : msg.text}</div>
+                        <span class="message-time">${msg.timestamp}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            if (showSuggestions) {
+                container.innerHTML += `
+                    <div class="quick-suggestions">
+                        <div class="suggestions-header">
+                            <span class="suggestions-icon">💡</span>
+                            <span>Câu hỏi gợi ý</span>
+                        </div>
+                        <div class="suggestions-grid">
+                            ${suggestions.map(s => `
+                                <button class="suggestion-card" onclick="handleSendMessage('${s}')">
+                                    ${s}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const container = document.getElementById('messagesContainer');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typingIndicator';
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="typing-dots">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                </div>
+            `;
+            container.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+
+        // ── MARKDOWN → HTML ──────────────────────────────────
+        function markdownToHtml(text) {
+            // Escape HTML đặc biệt TRƯỚC (tránh XSS)
+            const esc = s => s
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            // Xử lý từng dòng
+            const lines  = text.split('\n');
+            let   html   = '';
+            let   inList = false;
+
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+
+                // ### Heading (###, ##, #)
+                const h3 = line.match(/^###\s+(.+)/);
+                const h2 = line.match(/^##\s+(.+)/);
+                const h1 = line.match(/^#\s+(.+)/);
+                if (h3 || h2 || h1) {
+                    if (inList) { html += '</ul>'; inList = false; }
+                    const txt = esc((h3||h2||h1)[1]).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                    html += `<h3>${txt}</h3>`;
+                    continue;
+                }
+
+                // List item: dòng bắt đầu bằng "- " hoặc "• "
+                const li = line.match(/^[-•]\s+(.+)/);
+                if (li) {
+                    if (!inList) { html += '<ul>'; inList = true; }
+                    const inner = esc(li[1])
+                        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.+?)\*/g,   '<em>$1</em>');
+                    html += `<li>${inner}</li>`;
+                    continue;
+                }
+
+                // Đóng list nếu đang mở
+                if (inList) { html += '</ul>'; inList = false; }
+
+                // Dòng trống → paragraph break
+                if (line.trim() === '') {
+                    html += '<br>';
+                    continue;
+                }
+
+                // Dòng thường: bold, italic, → cite
+                let out = esc(line)
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.+?)\*/g,   '<em>$1</em>')
+                    .replace(/^→\s*/,         '<span class="cite">→ </span>');
+                html += `<p>${out}</p>`;
+            }
+
+            if (inList) html += '</ul>';
+
+            // Dọn dẹp <br> thừa ở đầu/cuối
+            return html.replace(/^(<br>)+/, '').replace(/(<br>)+$/, '');
+        }
+
+        // ── KẾT NỐI FASTAPI (STREAMING) ──────────────────
+        const API_URL = 'http://localhost:5000/api/chat';
+
+        async function handleSendMessage(text) {
+            const input   = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const messageText = text || input.value.trim();
+            if (!messageText) return;
+
+            messages.push({
+                id: Date.now().toString(),
+                text: messageText,
+                isBot: false,
+                timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+            });
+
+            input.value       = '';
+            sendBtn.disabled  = true;
+            renderMessages();
+            showTypingIndicator();
+
+            try {
+                // Streaming: nhận token ngay khi LLM generate
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: messageText, userId: 'web-user', stream: true })
+                });
+
+                if (!response.ok) throw new Error(`Lỗi máy chủ: HTTP ${response.status}`);
+
+                hideTypingIndicator();
+
+                // Tạo bubble bot ngay để stream vào
+                const botMsgId = (Date.now() + 1).toString();
+                messages.push({ id: botMsgId, text: '', isBot: true,
+                    timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) });
+                renderMessages();
+
+                // Tìm bubble mới nhất và stream token vào
+                const allBubbles = document.querySelectorAll('.message.bot .message-bubble');
+                const bubble = allBubbles[allBubbles.length - 1];
+
+                const reader  = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let fullText  = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+                    fullText += chunk;
+                    bubble.innerHTML = markdownToHtml(fullText);
+                    scrollToBottom();
+                }
+
+                // Cập nhật messages array để renderMessages() sau này còn đúng
+                const idx = messages.findIndex(m => m.id === botMsgId);
+                if (idx !== -1) messages[idx].text = fullText || '(Không có phản hồi)';
+
+            } catch (err) {
+                hideTypingIndicator();
+                messages.push({
+                    id: (Date.now() + 1).toString(),
+                    text: `Không kết nối được máy chủ AI.\n\nHãy chắc chắn rằng main.py đang chạy tại:\n${API_URL}\n\nChi tiết lỗi: ${err.message}`,
+                    isBot: true,
+                    timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+                });
+                renderMessages();
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            handleSendMessage();
+        }
+
+        // Input handling
+        document.getElementById('chatInput').addEventListener('input', function() {
+            const sendButton = document.getElementById('sendBtn');
+            sendButton.disabled = !this.value.trim();
+        });
+
+        // Form submit handling
+        document.getElementById('chatForm').addEventListener('submit', handleSubmit);
+
+        // Initialize app
+        init();
+    </script>
+
+</body><savior-host style="all: unset; position: absolute; top: 0; left: 0; z-index: 99999999999999; display: block !important; overflow: unset"><template shadowrootmode="open"><style>@import "chrome-extension://jdfkmiabjpfjacifcmihfdjhpnjpiick/css/content-script.css";
+</style><div class="body"><div class="turn-lights-overlay"></div><toasts id="toasts-container"></toasts></div></template></savior-host></html>

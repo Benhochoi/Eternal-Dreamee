@@ -1,0 +1,7 @@
+langchain
+langchain-ollama
+langchain-chroma
+langchain-community
+chromadb
+docx2txt
+pandas
