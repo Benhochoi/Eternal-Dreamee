@@ -28,8 +28,7 @@ except ImportError:
     _NUMPY_OK  = False
     _SCIPY_OK  = False
     print("[WARN] numpy không có — BM25 dùng pure-Python. Cài: pip install numpy scipy")
-
-
+    
 # ============================================================
 # CẤU HÌNH
 # ============================================================
@@ -120,12 +119,13 @@ _DOMAIN_KEYWORDS: dict[str, list[str]] = {
     "cntt":         ["công nghệ thông tin", "cntt", "tin học", "chứng chỉ cntt"],
     "chuyen_doi_tc":["chuyển đổi tín chỉ", "công nhận kết quả", "chuyển trường", "chứng chỉ nghề nghiệp"],
     "tot_nghiep":   ["tốt nghiệp", "xét tốt nghiệp", "điều kiện tốt nghiệp", "bằng tốt nghiệp"],
-    "lich_hoc":     ["lịch học", "thời khóa biểu", "ca học", "buổi học", "tiến độ"],
+    "lich_hoc":     ["lịch học", "thời khóa biểu", "ca học", "buổi học", "tiến độ",
+                     "tiến độ đào tạo", "chương trình đào tạo ngành", "tiến độ chương trình"],
 }
 
 # Domain → từ khóa xuất hiện trong ten_van_ban / so_hieu của chunk
 _DOMAIN_DOC_HINTS: dict[str, list[str]] = {
-    "hoc_bong":      ["khuyến khích", "kkht", "học bổng"],
+    "hoc_bong":      ["khuyến khích", "kkht", "học bổng", "nckh", "nghiên cứu khoa học"], 
     "hoc_phi":       ["học phí", "miễn giảm"],
     "hoc_phan":      ["2833", "đăng ký", "hủy học phần"],
     "ren_luyen":     ["rèn luyện"],
@@ -134,16 +134,17 @@ _DOMAIN_DOC_HINTS: dict[str, list[str]] = {
     "cntt":          ["3337", "công nghệ thông tin"],
     "chuyen_doi_tc": ["2786", "309", "chuyển đổi", "công nhận"],
     "tot_nghiep":    ["335", "tốt nghiệp"],
-    "lich_hoc":      ["lịch", "ca học", "tiến độ"],
+    "lich_hoc":      ["lịch", "ca học", "tiến độ", "toan bo tien do", "tự học", "hướng dẫn sinh viên"],
 }
 
 def detect_domain(query: str) -> str | None:
-    """
-    Nhận diện domain của câu hỏi.
-    Trả về tên domain (str) hoặc None nếu không xác định.
-    Domain dùng để filter_docs và debug log.
-    """
     q = query.lower()
+
+    _TIEN_DO_TRIGGERS = ["tiến độ đào tạo", "tiến độ chương trình",
+                          "chương trình đào tạo ngành", "tiến độ ngành"]
+    if any(t in q for t in _TIEN_DO_TRIGGERS):
+        return "lich_hoc"
+
     # Đếm keyword match cho mỗi domain, lấy domain có nhiều nhất
     best_domain = None
     best_count  = 0
@@ -198,16 +199,6 @@ def simple_rerank(
     query: str,
     top_k: int = 5,
 ) -> list[Document]:
-    """
-    Rerank đơn giản bằng cách đếm số từ query có trong page_content.
-    Dùng sau filter_docs để sắp xếp lại thứ tự trước khi đưa vào LLM.
-    Không xóa doc — chỉ thay đổi thứ tự.
-
-    Tại sao cần:
-        Vector search xếp hạng theo cosine similarity toàn đoạn.
-        Rerank keyword bổ sung tín hiệu "chunk này có đúng từ user hỏi không?"
-        → giúp chunk có "học bổng KKHT điều 5" lên trước chunk chỉ nói chung chung.
-    """
     q_words = set(w for w in re.split(r"\s+", query.lower()) if len(w) >= 3)
     if not q_words:
         return docs[:top_k]
@@ -256,7 +247,6 @@ class BM25:
                 if t in self.vocab:
                     df[self.vocab[t]] += 1
 
-        # IDF giống hệt bản gốc — Robertson-Sparck Jones
         self.idf = [
             math.log((self.n - max(df[i], 1) + 0.5) / (max(df[i], 1) + 0.5) + 1)
             for i in range(V)
@@ -303,7 +293,6 @@ class BM25:
                 np.asarray(self._tf[:, vi].todense()).flatten()
                 if self._sparse else self._tf[:, vi]
             )
-            # Công thức BM25 giống hệt bản gốc, chỉ vectorized
             num    = tf_vec * (self.k1 + 1)
             denom  = tf_vec + self._norm
             scores += idf * (num / np.maximum(denom, 1e-9))
@@ -320,7 +309,7 @@ class BM25:
             top_idx = arr.argsort()[::-1][:k]
             return [(self.docs[i], float(arr[i])) for i in top_idx if arr[i] > 0]
 
-        # Pure-Python fallback — giống bản gốc
+        # Pure-Python fallback 
         from collections import Counter
         results = []
         for di, tok in enumerate(self.corpus):
@@ -344,7 +333,7 @@ class BM25:
 
 
 # ============================================================
-# CACHE RETRIEVAL — chỉ cache, không thay đổi kết quả
+# CACHE RETRIEVAL 
 # ============================================================
 
 class LRUQueryCache:
@@ -380,7 +369,7 @@ _cache = LRUQueryCache()
 
 # ============================================================
 # HYBRID RETRIEVER — BM25 + Vector chạy SONG SONG
-# Weights và k giữ nguyên bản gốc (vector=0.6, bm25=0.4, k=5)
+# Weights và k giữ nguyên bản gốc (vector=0.3, bm25=0.7, k=5)
 # ============================================================
 
 def _rrf_score(rank: int, k: int = 60) -> float:
@@ -400,8 +389,8 @@ class HybridRetriever:
                  vs,
                  bm25_docs: list[Document],
                  k: int             = 5,
-                 vector_weight: float = 0.6,
-                 bm25_weight:   float = 0.4):
+                 vector_weight: float = 0.7,
+                 bm25_weight:   float = 0.3):
 
         self._vs            = vs
         self._bm25          = BM25(bm25_docs)
@@ -513,8 +502,8 @@ retriever = HybridRetriever(
     vs=vector_store,
     bm25_docs=_all_docs,
     k=5,
-    vector_weight=0.6,
-    bm25_weight=0.4,
+    vector_weight=0.3,
+    bm25_weight=0.7,
 )
 
 print(f">>> ĐANG GỌI NÃO AI ({LLM_MODEL})...")
@@ -533,11 +522,11 @@ TEMPLATE = """Bạn là trợ lý tư vấn của Học viện Ngân hàng (HVNH
 Dựa HOÀN TOÀN vào tài liệu trên, trả lời câu hỏi sau bằng tiếng Việt.
 
 Hướng dẫn trích dẫn:
-- Nếu thông tin đến từ một Điều trong quyết định/quy chế → ghi rõ: "Theo Điều [số] của [số hiệu]..."
-- Nếu thông tin đến từ thông báo, lịch học, tiến độ chương trình → trả lời bình thường, ghi tên tài liệu nguồn nếu cần.
+- Nếu thông tin đến từ một Điều trong quyết định/quy chế, bắt buộc phải ghi rõ: "Theo Điều [số] của [số hiệu]..."
+- Nếu thông tin đến từ thông báo, lịch học, tiến độ chương trình, hoặc không có điều hay số hiệu, bắt buộc phải trả lời bình thường, ghi tên tài liệu nguồn nếu cần.
 - Không bịa đặt, không thêm thông tin ngoài tài liệu.
 - Nếu tài liệu không có thông tin cần thiết → trả lời: "Xin lỗi, tôi không tìm thấy nội dung liên quan đến câu hỏi của bạn trong các tài liệu được cung cấp. Hãy hỏi lại vấn đề bạn cần tư vấn về quy chế, quy định của Học viện Ngân hàng nhé."
-
+- Chỉ trả lời bằng tiếng Việt, TUYỆT ĐỐI không dùng tiếng Trung, tiếng Anh hay ngôn ngữ khác.
 [CÂU HỎI]
 {question}
 

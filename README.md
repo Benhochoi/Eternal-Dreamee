@@ -83,7 +83,7 @@ File .docx (data/processed/)
 ┌──────────────────────────────────────────────┐
 │              HybridRetriever                 │
 │  ┌──────────────────┐  ┌──────────────────┐  │
-│  │  BM25 (40%)      │  │  Vector (60%)    │  │
+│  │  BM25 (70%)      │  │  Vector (30%)    │  │
 │  │  numpy+scipy     │  │  ChromaDB sim.   │  │
 │  └────────┬─────────┘  └────────┬─────────┘  │
 │           └──── asyncio.gather() ────┘         │
@@ -163,8 +163,8 @@ File .docx (data/processed/)
 ### 1. Clone repository
 
 ```bash
-git clone https://github.com/[TODO]/[TODO].git
-cd [TODO]
+git clone https://github.com/Benhochoi/Eternal-Dreamee.git
+cd /Eternal-Dreamee
 ```
 
 ### 2. Cài đặt dependencies
@@ -255,10 +255,6 @@ Kết quả mong đợi:
 Mở file `HVBot_-_Trợ_lý_Học_viện_Ngân_Hàng.html` trực tiếp trong trình duyệt (Chrome / Firefox / Edge).
 
 > ⚠️ **Quan trọng:** Phải khởi động `main.py` **trước**, sau đó mới mở file HTML.
-
-### Giao diện chat
-
-![Giao diện HVBot](./)
 
 ### Gọi API — chế độ thông thường
 

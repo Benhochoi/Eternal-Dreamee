@@ -83,11 +83,6 @@ def _extract_title(text: str, source_path: str = "") -> str:
 
 def _extract_metadata(text: str, source_path: str = "", loai: str = "thong_tin") -> dict:
     title = _extract_title(text, source_path)
-
-    # Trich so hieu neu co (vi du: "115/ĐT-HVNH", "Số: 23/TB-HVNH")
-    so_hieu_m = re.search(r"Số[:\s]*([\w/\-\.]+)", text[:500])
-    so_hieu   = so_hieu_m.group(1).strip() if so_hieu_m else ""
-
     ngay_m = re.search(
         r"(?:ngày|Ngày)\s+(\d+\s+tháng\s+\d+\s+năm\s+\d{4})"
         r"|(\d{1,2}/\d{1,2}/\d{4})",
@@ -97,29 +92,13 @@ def _extract_metadata(text: str, source_path: str = "", loai: str = "thong_tin")
     if ngay_m:
         ngay_str = (ngay_m.group(1) or ngay_m.group(2) or "").strip()
 
-    # Trich keywords quan trong de ho tro filter/rerank trong main.py
-    _KW_SIGNALS = [
-        "học bổng", "khuyến khích", "kkht",
-        "học phí", "rèn luyện", "điểm rèn luyện",
-        "cảnh báo", "tốt nghiệp",
-        "đăng ký", "tín chỉ", "học phần",
-        "ngoại ngữ", "ielts", "toeic",
-        "công nghệ thông tin", "cntt",
-        "lịch học", "ca học", "tiến độ",
-        "chứng chỉ", "điều kiện",
-    ]
-    text_lower = text.lower()
-    keywords   = ", ".join(sig for sig in _KW_SIGNALS if sig in text_lower)
-
     return {
         "source":       source_path,
         "loai_van_ban": "thuong",
-        "kieu_van_ban": loai,
+        "kieu_van_ban": loai,       # "hanh_chinh" hoac "thong_tin"
         "ten_van_ban":  title,
-        "so_hieu":      so_hieu,           # them so_hieu de filter khop voi phap quy
         "ngay":         ngay_str or "Khong ro",
         "co_quan":      "Hoc vien Ngan hang",
-        "keywords":     keywords,          # them keywords de rerank chinh xac hon
     }
 
 

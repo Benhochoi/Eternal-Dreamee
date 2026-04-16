@@ -29,17 +29,22 @@ COLLECTION_NAME = "quy_dinh_hvnh"
 
 # So hieu / ten van ban → domain
 _DOMAIN_SIGNALS: list[tuple[str, str]] = [
-    ("2786",        "chuyen_doi_tc"),
-    ("309",         "chuyen_doi_tc"),
-    ("3337",        "ngoai_ngu_cntt"),
-    ("2833",        "hoc_phan"),
-    ("335",         "quy_che_dao_tao"),
-    ("khuyến khích","hoc_bong"),
-    ("học phí",     "hoc_phi"),
-    ("rèn luyện",   "ren_luyen"),
-    ("tốt nghiệp",  "tot_nghiep"),
-    ("lịch học",    "lich_hoc"),
-    ("tiến độ",     "lich_hoc"),
+    ("2786",             "chuyen_doi_tc"),
+    ("309",              "chuyen_doi_tc"),
+    ("3337",             "ngoai_ngu_cntt"),
+    ("2833",             "hoc_phan"),
+    ("335",              "quy_che_dao_tao"),
+    ("khuyến khích",     "hoc_bong"),
+    ("nckh",             "hoc_bong"),      
+    ("nghiên cứu khoa học", "hoc_bong"),    
+    ("học phí",          "hoc_phi"),
+    ("rèn luyện",        "ren_luyen"),
+    ("tốt nghiệp",       "tot_nghiep"),
+    ("lịch học",         "lich_hoc"),
+    ("tiến độ",          "lich_hoc"),
+    ("ca học",           "lich_hoc"),       
+    ("tự học",           "lich_hoc"),       
+    ("hướng dẫn sinh viên", "lich_hoc"),   
 ]
 
 def _tag_domain(meta: dict) -> str:
@@ -63,8 +68,6 @@ def _tag_domain(meta: dict) -> str:
 # PHAN LOAI VAN BAN
 # -------------------------------------------------------------------------------
 
-# Regex bat ma loai tu so hieu: "3337/QD-HVNH" -> "QD"
-# [FIX 1] r"[-\-]" thay vi r"[--]" -- [--] la range ky tu sai trong regex
 _RE_SO_HIEU_LOAI = re.compile(
     r"\d+/"
     r"(QD|QĐ|NQ|TT|TB|CV|HD|KH|BC)"
@@ -74,10 +77,8 @@ _RE_SO_HIEU_LOAI = re.compile(
 
 # Ma loai -> nhom
 # Mo rong: chi can them 1 dong vao dict nay
-# [FIX 2] Bo key "QD" trung, giu lai "QD" (ASCII) va them "QĐ" (Unicode tieng Viet)
-#          Sau khi match, ma_loai duoc upper() + replace("QĐ","QD") nen chi can "QD"
 _LOAI_MAP: dict[str, str] = {
-    "QD": "phap_quy",   # Quyet dinh (ca ASCII "QD" lan Unicode "QD" sau khi normalize)
+    "QD": "phap_quy",   # Quyet dinh 
     "NQ": "phap_quy",   # Nghi quyet
     "TT": "phap_quy",   # Thong tu
     "TB": "thuong",     # Thong bao
@@ -89,8 +90,9 @@ _LOAI_MAP: dict[str, str] = {
 
 
 def _extract_so_hieu(text: str) -> str:
-    """Trich so hieu tu 500 ky tu dau van ban. Vi du: '3337/QD-HVNH'"""
-    m = re.search(r"Số[:\s]*([\w/\-\.]+)", text[:500])
+    """Trich so hieu tu 500 ky tu dau van ban. Vi du: '3337/QD-HVNH'
+    """
+    m = re.search(r"S\u1ed1[:\s]*([\w]+/[\w\-\.]+)", text[:500])
     return m.group(1).strip() if m else ""
 
 
@@ -107,7 +109,7 @@ def classify_document(doc: Document) -> str:
             if label:
                 return label
 
-    # Buoc 2: Fallback -- dem Dieu/Khoan trong noi dung
+    # Buoc 2: dem Dieu/Khoan trong noi dung
     if len(re.findall(r"Điều\s+\d+[\.:]", text)) >= 2:
         return "phap_quy"
 
@@ -355,7 +357,7 @@ def get_smart_retriever(vector_store: Chroma, k: int = 5):
         retriever = get_smart_retriever(vector_store, k=5)
         docs = retriever.invoke("cau hoi")
     """
-    # [FIX] Tang pool len k*6 de file dung khong bi day ra ngoai top-k
+    # Tang pool len k*6 de file dung khong bi day ra ngoai top-k
     # Vi du: "CNTT" bi outrank boi "Quy dinh chuan dau ra...cong nghe thong tin"
     base_retriever = vector_store.as_retriever(
         search_type="similarity",
@@ -406,7 +408,7 @@ def get_smart_retriever(vector_store: Chroma, k: int = 5):
                         seen_flat.add(chunk_id)
                         flat_docs.append(doc)
 
-            # [FIX] Batch fetch tat ca parent trong 1 lan goi thay vi N lan
+            # Batch fetch tat ca parent trong 1 lan goi thay vi N lan
             parent_docs: dict[str, Document] = {}
             if child_parent_ids:
                 try:
@@ -438,7 +440,7 @@ def get_smart_retriever(vector_store: Chroma, k: int = 5):
                     candidates.append(parent_docs[pid])
             candidates.extend(flat_docs)
 
-            # [FIX] Boost doc ten khop query len dau truoc khi cat top-k
+            # Boost doc ten khop query len dau truoc khi cat top-k
             candidates = _exact_name_boost(query, candidates)
             return candidates[:self._k]
 
